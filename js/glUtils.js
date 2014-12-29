@@ -153,6 +153,8 @@ function makePerspective(fovy, aspect, znear, zfar)
     var xmin = ymin * aspect;
     var xmax = ymax * aspect;
 
+    console.log('ymax = ' + ymax + ' ; ymin = ' + ymin + ' ; xmin ' + xmin + ' ; xmax = ' + xmax);
+
     return makeFrustum(xmin, xmax, ymin, ymax, znear, zfar);
 }
 
