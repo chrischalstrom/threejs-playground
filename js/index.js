@@ -70,8 +70,9 @@ $(document).ready(function() {
     sceneLights().forEach(function(light) { scene.add(light); console.log(light); });
 
     var floorGeometry = new THREE.PlaneGeometry(1000, 1000);
-    var floorMaterial = new THREE.MeshLambertMaterial({ color: 0xcccc00, side: THREE.DoubleSide });
+    var floorMaterial = new THREE.MeshLambertMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.receiveShadow = true;
     scene.add(floor);
 
     var skyboxGeometry = new THREE.BoxGeometry(5000, 5000, 5000);
@@ -80,10 +81,10 @@ $(document).ready(function() {
     scene.add(skybox);
 
     var cubeGeometry = new THREE.BoxGeometry(50, 50, 50);
-    var cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+    var cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x888888 });
     var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     cube.castShadow = true;
-    cube.position.set(0, 50, 100);
+    cube.position.set(0, 0, 100);
     scene.add(cube);
 
     return {
@@ -94,17 +95,15 @@ $(document).ready(function() {
   function sceneLights() {
     lights = [];
 
-    var spotlight = new THREE.SpotLight(0xff0000, 15, 2000);
-    spotlight.position.set(150, 750, 750);
+    var spotlight = new THREE.SpotLight(0xffffff, 10);
+    spotlight.position.set(0, -100, 800);
     spotlight.castShadow = true;
+    spotlight.shadowCameraVisible = true;
+    spotlight.shadowDarkness = 0.95;
     var spotlightTarget = new THREE.Object3D();
-    spotlightTarget.position.set(5, 5, 5);
+    spotlightTarget.position.set(0, 0, 0);
     spotlight.target = spotlightTarget;
     lights.push(spotlight);
-
-    var pointlight = new THREE.PointLight(0xffffff, 5, 0);
-    pointlight.position.set(0, 250, 0);
-    lights.push(pointlight);
 
     return lights;
   }
@@ -129,6 +128,12 @@ $(document).ready(function() {
     }
     else if(keyboard.pressed('left')) {
       worldObjs.cube.translateX(-moveDistance);
+    }
+    else if(keyboard.pressed('up')) {
+      worldObjs.cube.translateY(moveDistance);
+    }
+    else if(keyboard.pressed('down')) {
+      worldObjs.cube.translateY(-moveDistance);
     }
 
     stats.update();
