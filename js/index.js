@@ -25,7 +25,7 @@ $(document).ready(function() {
     );
 
     scene.add(camera);
-    camera.position.set(0, 1000, 1000);
+    camera.position.set(0, -600, 100);
     camera.lookAt(scene.position);
 
     var renderer = Detector.webgl ?
