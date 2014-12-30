@@ -8,12 +8,12 @@ $(document).ready(function() {
   var clock = new THREE.Clock();
   var stats = addStatsToDom();
 
-  var keyboard = new KeyboardState();
+  var keyboard = new THREEx.KeyboardState();
 
   var sceneObjs = setupScene(viewAngle, screenWidth, screenHeight, near, far);
+  var worldObjs = createWorld(sceneObjs.scene);
 
-  createWorld(sceneObjs.scene);
-  animate(sceneObjs, keyboard, stats);
+  animate(sceneObjs, worldObjs, keyboard, clock, stats);
 
   function setupScene(viewAngle, width, height, near, far) {
     var scene = new THREE.Scene();
@@ -25,8 +25,9 @@ $(document).ready(function() {
     );
 
     scene.add(camera);
-    camera.position.set(0, -600, 100);
-    camera.lookAt(scene.position);
+    camera.position.set(0, -300, 200);
+    camera.lookAt(new THREE.Vector3(0, 1000, -200));
+    Hack.camera = camera; // TODO remove debug assignment
 
     var renderer = Detector.webgl ?
       new THREE.WebGLRenderer({ antialias: true }) :
@@ -82,8 +83,12 @@ $(document).ready(function() {
     var cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
     var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     cube.castShadow = true;
-    cube.position.set(100, 50, 100);
+    cube.position.set(0, 50, 100);
     scene.add(cube);
+
+    return {
+      cube: cube
+    };
   }
 
   function sceneLights() {
@@ -104,22 +109,28 @@ $(document).ready(function() {
     return lights;
   }
 
-  function animate(sceneObjs, keyboard, stats) {
-    requestAnimationFrame(function() { animate(sceneObjs, keyboard, stats) });
+  function animate(sceneObjs, worldObjs, keyboard, clock, stats) {
+    requestAnimationFrame(function() { animate(sceneObjs, worldObjs, keyboard, clock, stats) });
     render(sceneObjs);
-    update(sceneObjs, keyboard, stats);
+    update(worldObjs, keyboard, clock, stats);
   }
 
   function render(sceneObjs) {
     sceneObjs.renderer.render(sceneObjs.scene, sceneObjs.camera);
   }
 
-  function update(sceneObjs, keyboard, stats) {
+  // TODO needs arg to sceneObjs to move camera
+  function update(worldObjs, keyboard, clock, stats) {
+    var delta = clock.getDelta(); // seconds since last update
+    var moveDistance = delta * 100;
+
     if(keyboard.pressed('right')) {
-      alert('right');
+      worldObjs.cube.translateX(moveDistance);
+    }
+    else if(keyboard.pressed('left')) {
+      worldObjs.cube.translateX(-moveDistance);
     }
 
-    sceneObjs.orbitControls.update();
     stats.update();
   }
 
