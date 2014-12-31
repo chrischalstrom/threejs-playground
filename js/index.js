@@ -117,6 +117,8 @@ $(document).ready(function() {
       models[strippedAssetName] = model;
     });
 
+    Hack.mario = models.mario;  // TODO, remove this
+
     return models;
   }
 
@@ -143,11 +145,24 @@ $(document).ready(function() {
     model.scale.set(5, 5, 5);
     model.castShadow = true;
     model.position.set(0, 0, 100);
-    model.rotateX(Math.PI/2); // Model rotation is a little wonky
 
     scene.add(model);
 
     return model;
+  }
+
+  function mirrorModelAroundX(model, scaleShouldBePositive) {
+    var scaleX = model.scale.x;
+
+    if((scaleX < 0 && scaleShouldBePositive) || (scaleX > 0 && !scaleShouldBePositive)){
+      // Get bounding box since mirroring model will flip
+      // it around its left or right edge, causing it to move.
+      // With the bbox, we can flip without moving the model.
+      var bbox = new THREE.Box3().setFromObject(model);
+      model.translateX((scaleX > 0 ? 1 : -1) * bbox.size().x);
+
+      model.scale.setX(-model.scale.x);
+    }
   }
 
   function animate(sceneObjs, worldObjs, keyboard, clock, stats) {
@@ -166,9 +181,11 @@ $(document).ready(function() {
     var moveDistance = delta * 100;
 
     if(keyboard.pressed('right')) {
+      mirrorModelAroundX(worldObjs.mario, true);
       worldObjs.mario.translateX(moveDistance);
     }
     else if(keyboard.pressed('left')) {
+      mirrorModelAroundX(worldObjs.mario, false);
       worldObjs.mario.translateX(-moveDistance);
     }
     else if(keyboard.pressed('up')) {
