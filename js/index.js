@@ -177,12 +177,6 @@ $(document).ready(function() {
     else if(keyboard.pressed('down')) {
       worldObjs.mario.translateY(-moveDistance);
     }
-    else if(keyboard.pressed('up')) {
-      worldObjs.cube.translateY(moveDistance);
-    }
-    else if(keyboard.pressed('down')) {
-      worldObjs.cube.translateY(-moveDistance);
-    }
 
     stats.update();
   }
