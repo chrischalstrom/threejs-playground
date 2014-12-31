@@ -10,10 +10,36 @@ $(document).ready(function() {
 
   var keyboard = new THREEx.KeyboardState();
 
-  var sceneObjs = setupScene(viewAngle, screenWidth, screenHeight, near, far);
-  var worldObjs = createWorld(sceneObjs.scene);
+  var preloaderDeferred = $.Deferred();
+  var assets = preloadAssets(preloaderDeferred, ["assets/mario.json"]);
+  preloaderDeferred.then(function(assets) {
+    console.log(assets);
 
-  animate(sceneObjs, worldObjs, keyboard, clock, stats);
+    var sceneObjs = setupScene(viewAngle, screenWidth, screenHeight, near, far);
+    var worldObjs = createWorld(sceneObjs.scene, assets);
+
+    animate(sceneObjs, worldObjs, keyboard, clock, stats);
+  });
+
+  function preloadAssets(preloaderDeferred, modelAssets) {
+    var deferreds = [];
+    var assets = {};
+
+    modelAssets.forEach(function(modelAsset) {
+      var loader = new THREE.JSONLoader();
+      var deferred = $.Deferred();
+      deferreds.push(deferred);
+
+      loader.load(modelAsset, function(geometry, materials) {
+        assets[modelAsset] = { geometry: geometry, materials: materials };
+        deferred.resolve();
+      });
+    });
+
+    $.when.apply(this, deferreds).done(function() {
+      preloaderDeferred.resolve(assets);
+    });
+  }
 
   function setupScene(viewAngle, width, height, near, far) {
     var scene = new THREE.Scene();
@@ -25,8 +51,9 @@ $(document).ready(function() {
     );
 
     scene.add(camera);
-    camera.position.set(0, -600, 100);
-    camera.lookAt(scene.position);
+    camera.position.set(0, -300, 200);
+    camera.lookAt(new THREE.Vector3(0, 1000, -200));
+    Hack.camera = camera; // TODO remove debug assignment
 
     var renderer = Detector.webgl ?
       new THREE.WebGLRenderer({ antialias: true }) :
@@ -65,7 +92,9 @@ $(document).ready(function() {
     return stats;
   }
 
-  function createWorld(scene) {
+  function createWorld(scene, assets) {
+    var models = {};
+
     sceneLights().forEach(function(light) { scene.add(light); console.log(light); });
 
     var floorGeometry = new THREE.PlaneGeometry(1000, 1000);
@@ -78,16 +107,16 @@ $(document).ready(function() {
     var skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
     scene.add(skybox);
 
-    var cubeGeometry = new THREE.BoxGeometry(50, 50, 50);
-    var cubeMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
-    var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    cube.castShadow = true;
-    cube.position.set(100, 50, 100);
-    scene.add(cube);
+    $.each(assets, function(assetName, asset) {
+      var model = addModelToScene(scene, asset.geometry, asset.materials);
 
-    return {
-      cube: cube
-    };
+      assetName.match(/assets\/(.*)\.json/);
+      var strippedAssetName = RegExp.$1;
+
+      models[strippedAssetName] = model;
+    });
+
+    return models;
   }
 
   function sceneLights() {
@@ -108,6 +137,20 @@ $(document).ready(function() {
     return lights;
   }
 
+  function addModelToScene(scene, geometry, materials) {
+    var material = new THREE.MeshFaceMaterial(materials);
+
+    var model = new THREE.Mesh(geometry, material);
+    model.scale.set(5, 5, 5);
+    model.castShadow = true;
+    model.position.set(0, 0, 100);
+    model.rotateX(Math.PI/2); // Model rotation is a little wonky
+
+    scene.add(model);
+
+    return model;
+  }
+
   function animate(sceneObjs, worldObjs, keyboard, clock, stats) {
     requestAnimationFrame(function() { animate(sceneObjs, worldObjs, keyboard, clock, stats) });
     render(sceneObjs);
@@ -118,15 +161,22 @@ $(document).ready(function() {
     sceneObjs.renderer.render(sceneObjs.scene, sceneObjs.camera);
   }
 
+  // TODO needs arg to sceneObjs to move camera
   function update(worldObjs, keyboard, clock, stats) {
     var delta = clock.getDelta(); // seconds since last update
     var moveDistance = delta * 100;
 
     if(keyboard.pressed('right')) {
-      worldObjs.cube.translateX(moveDistance);
+      worldObjs.mario.translateX(moveDistance);
     }
     else if(keyboard.pressed('left')) {
-      worldObjs.cube.translateX(-moveDistance);
+      worldObjs.mario.translateX(-moveDistance);
+    }
+    else if(keyboard.pressed('up')) {
+      worldObjs.mario.translateY(moveDistance);
+    }
+    else if(keyboard.pressed('down')) {
+      worldObjs.mario.translateY(-moveDistance);
     }
 
     stats.update();
