@@ -189,13 +189,20 @@ $(document).ready(function() {
       mirrorModelAroundX(worldObjs.mario, false);
       worldObjs.mario.translateX(-moveDistance);
     }
-    if(keyboard.pressed('up')) {
+    if(keyboard.pressed('space')) {
       worldObjs.mario.velocity.set(
         worldObjs.mario.velocity.x,
         worldObjs.mario.velocity.y,
         100
       );
     }
+
+    Hack.camera.position.set(
+      Hack.mario.position.x - (Hack.mario.scale.x < 0 ? 60 : 0), -300, Hack.mario.position.z + 200
+    );
+    Hack.camera.lookAt(new THREE.Vector3(
+      Hack.mario.position.x - (Hack.mario.scale.x < 0 ? 60 : 0), 300, Hack.mario.position.z - 200
+    ));
 
     Hack.physics.simulate(delta, [Hack.mario, Hack.floor]);
     stats.update();
