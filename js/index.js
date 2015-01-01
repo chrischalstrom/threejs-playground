@@ -99,7 +99,8 @@ $(document).ready(function() {
 
     var floorGeometry = new THREE.PlaneGeometry(1000, 1000);
     var floorMaterial = new THREE.MeshLambertMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
-    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    var floor = new Hack.physics.Mesh(floorGeometry, floorMaterial, false);
+    Hack.floor = floor; // TODO, remove this
     floor.receiveShadow = true;
     scene.add(floor);
 
@@ -141,7 +142,7 @@ $(document).ready(function() {
   function addModelToScene(scene, geometry, materials) {
     var material = new THREE.MeshFaceMaterial(materials);
 
-    var model = new THREE.Mesh(geometry, material);
+    var model = new Hack.physics.Mesh(geometry, material, true);
     model.scale.set(5, 5, 5);
     model.castShadow = true;
     model.position.set(0, 0, 100);
@@ -188,13 +189,15 @@ $(document).ready(function() {
       mirrorModelAroundX(worldObjs.mario, false);
       worldObjs.mario.translateX(-moveDistance);
     }
-    else if(keyboard.pressed('up')) {
-      worldObjs.mario.translateY(moveDistance);
-    }
-    else if(keyboard.pressed('down')) {
-      worldObjs.mario.translateY(-moveDistance);
+    if(keyboard.pressed('up')) {
+      worldObjs.mario.velocity.set(
+        worldObjs.mario.velocity.x,
+        worldObjs.mario.velocity.y,
+        100
+      );
     }
 
+    Hack.physics.simulate(delta, [Hack.mario, Hack.floor]);
     stats.update();
   }
 
