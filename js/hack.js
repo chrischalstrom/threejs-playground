@@ -3,7 +3,7 @@
 Hack = {
 
   physics: {
-    gravity: new THREE.Vector3(0, 0, -2),
+    gravity: new THREE.Vector3(0, 0, -30),
 
     // Prototype is THREE.Mesh
     // @param canMove {bool} true if the object is mobile
@@ -22,9 +22,9 @@ Hack = {
 
         if(thisMesh.canMove) {
           thisMesh.velocity.set(
-            thisMesh.velocity.x + thisMesh.acceleration.x,
-            thisMesh.velocity.y + thisMesh.acceleration.y,
-            thisMesh.velocity.z + thisMesh.acceleration.z + Hack.physics.gravity.z
+            thisMesh.velocity.x + delta * thisMesh.acceleration.x,
+            thisMesh.velocity.y + delta * thisMesh.acceleration.y,
+            thisMesh.velocity.z + delta * (thisMesh.acceleration.z + Hack.physics.gravity.z)
           );
         }
 
