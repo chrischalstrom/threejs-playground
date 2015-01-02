@@ -64,13 +64,11 @@ $(document).ready(function() {
     $('#gamewindow').append(renderer.domElement);
 
     initEvents(renderer, camera);
-    var orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
 
     return {
       scene: scene,
       camera: camera,
       renderer: renderer,
-      orbitControls: orbitControls
     };
   }
 
