@@ -126,15 +126,22 @@ $(document).ready(function() {
   function sceneLights() {
     lights = [];
 
-    var spotlight = new THREE.SpotLight(0xffffff, 10);
-    spotlight.position.set(0, -100, 800);
+    var spotlight = new THREE.SpotLight(0xffcccc, 5);
+    spotlight.position.set(200, -400, 400);
     spotlight.castShadow = true;
-    spotlight.shadowCameraVisible = true;
     spotlight.shadowDarkness = 0.95;
     var spotlightTarget = new THREE.Object3D();
-    spotlightTarget.position.set(0, 0, 0);
+    spotlightTarget.position.set(200, 100, -100);
     spotlight.target = spotlightTarget;
     lights.push(spotlight);
+
+    var directionalLight = new THREE.DirectionalLight(0xcccccc, 0.5);
+    directionalLight.position.set(0, -200, 400);
+    directionalLight.castShadow = true;
+    lights.push(directionalLight);
+
+    var ambientLight = new THREE.AmbientLight(0x404040);
+    lights.push(ambientLight);
 
     return lights;
   }
