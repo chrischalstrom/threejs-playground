@@ -75,16 +75,19 @@ require([
     }
 
     function createWorld(scene, assets) {
-      var models = {};
+      var world = { physicsMeshes: {} };
 
       sceneLights().forEach(function(light) { scene.add(light); console.log(light); });
 
       var floorGeometry = new THREE.PlaneGeometry(1000, 1000);
       var floorMaterial = new THREE.MeshLambertMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
       var floor = new hackPhysics.Mesh(floorGeometry, floorMaterial, false);
-      Hack.floor = floor; // TODO, remove this
       floor.receiveShadow = true;
       scene.add(floor);
+
+      // TODO, better way to add floor?
+      world.physicsMeshes.floor = {};
+      world.physicsMeshes.floor[floor.uuid] = floor;
 
       var skyboxGeometry = new THREE.BoxGeometry(5000, 5000, 5000);
       var skyboxMaterial = new THREE.MeshBasicMaterial({ color: 0xaaaaff, side: THREE.DoubleSide });
@@ -92,17 +95,19 @@ require([
       scene.add(skybox);
 
       $.each(assets, function(assetName, asset) {
-        var model = addModelToScene(scene, asset.geometry, asset.materials);
+        var mesh = addMeshToScene(scene, asset.geometry, asset.materials);
 
         assetName.match(/assets\/(.*)\.json/);
         var strippedAssetName = RegExp.$1;
 
-        models[strippedAssetName] = model;
+        // Keep the ref to mario mesh to use elsewhere
+        if(strippedAssetName == 'mario') Hack.mario = mesh;
+
+        world.physicsMeshes[strippedAssetName] = world.physicsMeshes[strippedAssetName] || {};
+        world.physicsMeshes[strippedAssetName][mesh.uuid] = mesh;
       });
 
-      Hack.mario = models.mario;  // TODO, remove this
-
-      return models;
+      return world;
     }
 
     function sceneLights() {
@@ -113,7 +118,7 @@ require([
       spotlight.castShadow = true;
       spotlight.shadowDarkness = 0.95;
       var spotlightTarget = new THREE.Object3D();
-      spotlightTarget.position.set(200, 100, -100);
+      spotlightTarget.position.set(200, 100, 200);
       spotlight.target = spotlightTarget;
       lights.push(spotlight);
 
@@ -128,17 +133,17 @@ require([
       return lights;
     }
 
-    function addModelToScene(scene, geometry, materials) {
+    function addMeshToScene(scene, geometry, materials) {
       var material = new THREE.MeshFaceMaterial(materials);
 
-      var model = new hackPhysics.Mesh(geometry, material, true);
-      model.scale.set(5, 5, 5);
-      model.castShadow = true;
-      model.position.set(0, 0, 100);
+      var mesh = new hackPhysics.Mesh(geometry, material, true);
+      mesh.scale.set(5, 5, 5);
+      mesh.castShadow = true;
+      mesh.position.set(0, 0, 100);
 
-      scene.add(model);
+      scene.add(mesh);
 
-      return model;
+      return mesh;
     }
 
     function mirrorModelAroundX(model, scaleShouldBePositive) {
@@ -170,30 +175,38 @@ require([
       var delta = clock.getDelta(); // seconds since last update
       var moveDistance = delta * 100;
 
+      var mario = Hack.mario;
+
       if(keyboard.pressed('right')) {
-        mirrorModelAroundX(worldObjs.mario, true);
-        worldObjs.mario.translateX(moveDistance);
+        mirrorModelAroundX(mario, true);
+        mario.translateX(moveDistance);
       }
       else if(keyboard.pressed('left')) {
-        mirrorModelAroundX(worldObjs.mario, false);
-        worldObjs.mario.translateX(-moveDistance);
+        mirrorModelAroundX(mario, false);
+        mario.translateX(-moveDistance);
       }
       if(keyboard.pressed('space')) {
-        worldObjs.mario.velocity.set(
-          worldObjs.mario.velocity.x,
-          worldObjs.mario.velocity.y,
+        mario.velocity.set(
+          mario.velocity.x,
+          mario.velocity.y,
           100
         );
       }
 
       Hack.camera.position.set(
-        Hack.mario.position.x - (Hack.mario.scale.x < 0 ? 60 : 0), -300, Hack.mario.position.z + 200
+        mario.position.x - (mario.scale.x < 0 ? 60 : 0), -300, mario.position.z + 200
       );
       Hack.camera.lookAt(new THREE.Vector3(
-        Hack.mario.position.x - (Hack.mario.scale.x < 0 ? 60 : 0), 300, Hack.mario.position.z - 200
+        mario.position.x - (mario.scale.x < 0 ? 60 : 0), 300, mario.position.z - 200
       ));
 
-      hackPhysics.simulate(delta, [Hack.mario, Hack.floor]);
+      // Simulate physics on all physics meshes.
+      hackPhysics.simulate(
+        delta,
+        $.map(worldObjs.physicsMeshes, function(meshStorageObj, meshStorageKey){
+          return $.map(meshStorageObj, function(mesh, uuid){ return mesh; });
+        })
+      );
       stats.update();
     }
 
