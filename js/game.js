@@ -1,3 +1,5 @@
+var Hack = {}; // TODO, remove this...Obj to hold stuff for debugging
+
 require([
   'jquery',
   'hack/physics',
@@ -5,8 +7,6 @@ require([
 ], function($, hackPhysics, hackPreloader) {
 
   $(document).ready(function() { 
-
-    var Hack = {}; // TODO, fix this.  Obj to hold stuff for debugging
 
     var viewAngle = 45;
     var screenWidth = window.innerWidth;

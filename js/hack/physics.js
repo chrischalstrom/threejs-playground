@@ -37,12 +37,7 @@ define([
           if(thisBbox.isIntersectionBox(thatBbox) || hackGeometry.boxesTouch(thisBbox, thatBbox)){
             thisMesh.velocity.z = 0;
             thisMesh.acceleration.z = 0;
-
-            // TODO: Need a better way to get the bounding boxes.
-            // THREE.Box3.setFromObject is expensive and it isn't working
-            // right - it is adding a constant 1.8627 in the z plane to the mario
-            // model.
-            thisMesh.position.setZ(thisBbox.size().z/2.0 - 1.8627);
+            thisMesh.position.setZ(0);
             thisMeshIntersected = true;
           }
         }
