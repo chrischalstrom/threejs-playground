@@ -1,8 +1,7 @@
-// Container for my global vars,
-// Depends on THREE.
-Hack = {
-
-  physics: {
+define([
+  './geometry'
+], function(hackGeometry) {
+  var hackPhysics = {
     gravity: new THREE.Vector3(0, 0, -30),
 
     // Prototype is THREE.Mesh
@@ -24,7 +23,7 @@ Hack = {
           thisMesh.velocity.set(
             thisMesh.velocity.x + delta * thisMesh.acceleration.x,
             thisMesh.velocity.y + delta * thisMesh.acceleration.y,
-            thisMesh.velocity.z + delta * (thisMesh.acceleration.z + Hack.physics.gravity.z)
+            thisMesh.velocity.z + delta * (thisMesh.acceleration.z + hackPhysics.gravity.z)
           );
         }
 
@@ -35,7 +34,7 @@ Hack = {
           var thatMesh = collideableMeshes[j];
           var thatBbox = thatMesh.nextSimulationBbox(delta);
 
-          if(thisBbox.isIntersectionBox(thatBbox) || Hack.geometry.boxesTouch(thisBbox, thatBbox)){
+          if(thisBbox.isIntersectionBox(thatBbox) || hackGeometry.boxesTouch(thisBbox, thatBbox)){
             thisMesh.velocity.z = 0;
             thisMesh.acceleration.z = 0;
 
@@ -55,46 +54,23 @@ Hack = {
         }
       }
     }
-  },
 
-  geometry: {
-    // @param thisBox, thatBox {THREE.Box3}
-    // Ignoring y plane for now
-    boxesTouch: function(thisBox, thatBox){
-      var thisMin = thisBox.min;
-      var thisMax = thisBox.max;
-      var thatMin = thatBox.min;
-      var thatMax = thatBox.max;
+  };
 
-      // NOTE: Eventually should get which faces touched
-      return (
-        (Hack.util.floatEquals(thisMin.z, thatMax.z) && (thisMin.x < thatMax.x && thisMax.x > thatMin.x)) ||
-        (Hack.util.floatEquals(thisMax.z, thatMin.z) && (thisMin.x < thatMax.x && thisMax.x > thatMin.x)) ||
-        (Hack.util.floatEquals(thisMin.x, thatMax.x) && (thisMin.z < thatMax.z && thisMax.z > thatMin.z)) ||
-        (Hack.util.floatEquals(thisMax.x, thatMin.x) && (thisMin.z < thatMax.z && thisMax.z > thatMin.z))
-      );
-    }
-  },
+  hackPhysics.Mesh.prototype = new THREE.Mesh;
+  hackPhysics.Mesh.prototype.constructor = hackPhysics.Mesh;
 
-  util: {
-    floatEquals: function(float1, float2) {
-      return Math.abs(float1 - float2) < 0.001;
-    }
+  // Taking the velocity into account, find the bounding box
+  // for this mesh at the next simulation iteration
+  hackPhysics.Mesh.prototype.nextSimulationBbox = function(delta) {
+    var currentBbox = new THREE.Box3().setFromObject(this);
+    var deltaVelocityVec3 = new THREE.Vector3().copy(this.velocity).multiplyScalar(delta);
+
+    return currentBbox.set(
+      currentBbox.min.add(deltaVelocityVec3),
+      currentBbox.max.add(deltaVelocityVec3)
+    );
   }
 
-};
-
-Hack.physics.Mesh.prototype = new THREE.Mesh;
-Hack.physics.Mesh.prototype.constructor = Hack.physics.Mesh;
-
-// Taking the velocity into account, find the bounding box
-// for this mesh at the next simulation iteration
-Hack.physics.Mesh.prototype.nextSimulationBbox = function(delta) {
-  var currentBbox = new THREE.Box3().setFromObject(this);
-  var deltaVelocityVec3 = new THREE.Vector3().copy(this.velocity).multiplyScalar(delta);
-
-  return currentBbox.set(
-    currentBbox.min.add(deltaVelocityVec3),
-    currentBbox.max.add(deltaVelocityVec3)
-  );
-}
+  return hackPhysics;
+});
