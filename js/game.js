@@ -1,7 +1,8 @@
 require([
   'jquery',
-  'hack/physics'
-], function($, hackPhysics) {
+  'hack/physics',
+  'hack/preloader'
+], function($, hackPhysics, hackPreloader) {
 
   $(document).ready(function() { 
 
@@ -17,36 +18,12 @@ require([
 
     var keyboard = new THREEx.KeyboardState();
 
-    var preloaderDeferred = $.Deferred();
-    var assets = preloadAssets(preloaderDeferred, ["assets/mario.json"]);
-    preloaderDeferred.then(function(assets) {
-      console.log(assets);
-
+    hackPreloader.preloadAssets(function(assets) {
       var sceneObjs = setupScene(viewAngle, screenWidth, screenHeight, near, far);
       var worldObjs = createWorld(sceneObjs.scene, assets);
 
       animate(sceneObjs, worldObjs, keyboard, clock, stats);
     });
-
-    function preloadAssets(preloaderDeferred, modelAssets) {
-      var deferreds = [];
-      var assets = {};
-
-      modelAssets.forEach(function(modelAsset) {
-        var loader = new THREE.JSONLoader();
-        var deferred = $.Deferred();
-        deferreds.push(deferred);
-
-        loader.load(modelAsset, function(geometry, materials) {
-          assets[modelAsset] = { geometry: geometry, materials: materials };
-          deferred.resolve();
-        });
-      });
-
-      $.when.apply(this, deferreds).done(function() {
-        preloaderDeferred.resolve(assets);
-      });
-    }
 
     function setupScene(viewAngle, width, height, near, far) {
       var scene = new THREE.Scene();
