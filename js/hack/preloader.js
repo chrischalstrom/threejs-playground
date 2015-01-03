@@ -1,6 +1,7 @@
 define([
-  'jquery'
-], function($) {
+  'jquery',
+  './modelAssets'
+], function($, modelAssets) {
 
   var _preloadAssets = function(preloaderDeferred, modelAssets) {
     var deferreds = [];
@@ -24,8 +25,7 @@ define([
 
   return {
     preloadAssets: function(callback) {
-      // TODO, config file to get asset list?
-      var assetsToLoad = ['assets/mario.json'];
+      var assetsToLoad = modelAssets.assetsToLoad;
       var preloaderDeferred = $.Deferred();
       var assets = _preloadAssets(preloaderDeferred, assetsToLoad);
 
