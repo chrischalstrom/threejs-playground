@@ -28,21 +28,20 @@ define([
         }
 
         var thisBbox = thisMesh.nextSimulationBbox(delta);
-        var thisMeshIntersected = false;
 
         for(var j = i + 1; j < collideableMeshes.length; j++) {
           var thatMesh = collideableMeshes[j];
           var thatBbox = thatMesh.nextSimulationBbox(delta);
 
           if(thisBbox.isIntersectionBox(thatBbox) || hackGeometry.boxesTouch(thisBbox, thatBbox)){
-            thisMesh.velocity.z = 0;
-            thisMesh.acceleration.z = 0;
-            thisMesh.position.setZ(0);
-            thisMeshIntersected = true;
+            var collisionFaces = { thatMesh: 'zmin', thisMesh: 'zmax' };  // TODO, make func for this
+
+            thisMesh.collideWith(thatMesh, collisionFaces.thisMesh);
+            thatMesh.collideWith(thisMesh, collisionFaces.thatMesh);
           }
         }
 
-        if(!thisMeshIntersected && thisMesh.canMove) {
+        if(thisMesh.canMove) {
           thisMesh.translateX(delta * thisMesh.velocity.x);
           thisMesh.translateY(delta * thisMesh.velocity.y);
           thisMesh.translateZ(delta * thisMesh.velocity.z);
@@ -65,6 +64,22 @@ define([
       currentBbox.min.add(deltaVelocityVec3),
       currentBbox.max.add(deltaVelocityVec3)
     );
+  }
+
+  // @param otherMesh {hackPhysics.Mesh}
+  // @param otherMeshCollisionFace {String} The face of the other mesh we collided with.
+  //          one of: xmin, xmax, zmin, zmax
+  // TODO pass Box3 to this for better geometry?
+  hackPhysics.Mesh.prototype.collideWith = function(otherMesh, thisMeshCollisionFace) {
+    // TODO use more inheritance here, mesh should handle this based on its class
+    // TODO before doing the above, give meshes isSolid prop?
+    if(this.canMove) {
+      if(thisMeshCollisionFace == 'zmin' || thisMeshCollisionFace == 'zmax') {
+        this.velocity.z = 0;
+        this.acceleration.z = 0;
+        this.position.setZ(thisMeshCollisionFace == 'zmin' ? 0 : -100); // TODO, temp logic
+      }
+    }
   }
 
   return hackPhysics;
