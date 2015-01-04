@@ -3,8 +3,9 @@ var Hack = {}; // TODO, remove this...Obj to hold stuff for debugging
 require([
   'jquery',
   'hack/physics',
-  '../assets/preloader'
-], function($, hackPhysics, hackPreloader) {
+  './assets/preloader',
+  './assets/levels/levels'
+], function($, hackPhysics, preloader, levels) {
 
   $(document).ready(function() { 
 
@@ -17,10 +18,11 @@ require([
     var stats = addStatsToDom();
 
     var keyboard = new THREEx.KeyboardState();
+    var currentLevel = 1;
 
-    hackPreloader.preloadAssets(function(assets) {
+    preloader.preloadAssets(currentLevel, function(assets) {
       var sceneObjs = setupScene(viewAngle, screenWidth, screenHeight, near, far);
-      var worldObjs = createWorld(sceneObjs.scene, assets);
+      var worldObjs = createWorld(sceneObjs.scene, assets.meshes, currentLevel, levels);
 
       animate(sceneObjs, worldObjs, keyboard, clock, stats);
     });
@@ -74,7 +76,7 @@ require([
       return stats;
     }
 
-    function createWorld(scene, assets) {
+    function createWorld(scene, meshes, currentLevel, levels) {
       var world = { physicsMeshes: {} };
 
       sceneLights().forEach(function(light) { scene.add(light); console.log(light); });
@@ -94,21 +96,16 @@ require([
       var skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
       scene.add(skybox);
 
-      $.each(assets, function(assetName, asset) {
-        var mesh = addMeshToScene(scene, asset.geometry, asset.materials);
+      $.each(meshes, function(meshKey, v) {
+        levels[currentLevel].meshInstances[meshKey].forEach(function(meshInstance) {
+          var mesh = addMeshToScene(scene, v.geometry, v.materials, meshInstance.position);
 
-        assetName.match(/.*\/(.*)\.json/);
-        var strippedAssetName = RegExp.$1;
+          // Keep the ref to mario mesh to use elsewhere
+          if(meshKey == 'mario') Hack.mario = mesh;
 
-        // Keep the ref to mario mesh to use elsewhere
-        if(strippedAssetName == 'mario') Hack.mario = mesh;
-
-
-        // TODO, REMOVE THIS DEBUG BLOCK
-        if(strippedAssetName == 'goomba') mesh.position.set(200, 0, 100);
-
-        world.physicsMeshes[strippedAssetName] = world.physicsMeshes[strippedAssetName] || {};
-        world.physicsMeshes[strippedAssetName][mesh.uuid] = mesh;
+          world.physicsMeshes[meshKey] = world.physicsMeshes[meshKey] || {};
+          world.physicsMeshes[meshKey][mesh.uuid] = mesh;
+        });
       });
 
       return world;
@@ -137,13 +134,13 @@ require([
       return lights;
     }
 
-    function addMeshToScene(scene, geometry, materials) {
+    function addMeshToScene(scene, geometry, materials, meshPosition) {
       var material = new THREE.MeshFaceMaterial(materials);
 
       var mesh = new hackPhysics.Mesh(geometry, material, true);
       mesh.scale.set(5, 5, 5);
       mesh.castShadow = true;
-      mesh.position.set(0, 0, 100);
+      mesh.position.set(meshPosition.x, meshPosition.y, meshPosition.z);
 
       scene.add(mesh);
 
@@ -211,6 +208,8 @@ require([
           return $.map(meshStorageObj, function(mesh, uuid){ return mesh; });
         })
       );
+
+      // Update FPS widget
       stats.update();
     }
 
