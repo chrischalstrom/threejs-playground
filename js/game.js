@@ -3,7 +3,7 @@ var Hack = {}; // TODO, remove this...Obj to hold stuff for debugging
 require([
   'jquery',
   'hack/physics',
-  'hack/preloader'
+  '../assets/preloader'
 ], function($, hackPhysics, hackPreloader) {
 
   $(document).ready(function() { 

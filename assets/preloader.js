@@ -1,7 +1,7 @@
 define([
   'jquery',
-  './modelAssets'
-], function($, modelAssets) {
+  '../../assets/meshes/meshes'
+], function($, meshes) {
 
   var _preloadAssets = function(preloaderDeferred, modelAssets) {
     var deferreds = [];
@@ -25,7 +25,7 @@ define([
 
   return {
     preloadAssets: function(callback) {
-      var assetsToLoad = modelAssets.assetsToLoad;
+      var assetsToLoad = meshes.assetsToLoad;
       var preloaderDeferred = $.Deferred();
       var assets = _preloadAssets(preloaderDeferred, assetsToLoad);
 
