@@ -1,13 +1,13 @@
 define([], function() {
-  var asset = function(name) {
-    var basePath = 'assets';
-    return basePath + '/' + name + '.json'
+  var meshAsset = function(name) {
+    var basePath = 'assets/';
+    return basePath + 'meshes/' + name + '.json'
   };
 
   return {
     assetsToLoad: [
-      asset('mario'),
-      asset('goomba')
+      meshAsset('mario'),
+      meshAsset('goomba')
     ]
   };
 });

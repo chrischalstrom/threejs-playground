@@ -97,11 +97,15 @@ require([
       $.each(assets, function(assetName, asset) {
         var mesh = addMeshToScene(scene, asset.geometry, asset.materials);
 
-        assetName.match(/assets\/(.*)\.json/);
+        assetName.match(/.*\/(.*)\.json/);
         var strippedAssetName = RegExp.$1;
 
         // Keep the ref to mario mesh to use elsewhere
         if(strippedAssetName == 'mario') Hack.mario = mesh;
+
+
+        // TODO, REMOVE THIS DEBUG BLOCK
+        if(strippedAssetName == 'goomba') mesh.position.set(200, 0, 100);
 
         world.physicsMeshes[strippedAssetName] = world.physicsMeshes[strippedAssetName] || {};
         world.physicsMeshes[strippedAssetName][mesh.uuid] = mesh;

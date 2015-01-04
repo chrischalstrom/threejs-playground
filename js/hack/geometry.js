@@ -11,12 +11,15 @@ define([
       var thatMax = thatBox.max;
 
       // NOTE: Eventually should get which faces touched
-      return (
-        (hackUtil.floatEquals(thisMin.z, thatMax.z) && (thisMin.x < thatMax.x && thisMax.x > thatMin.x)) ||
-        (hackUtil.floatEquals(thisMax.z, thatMin.z) && (thisMin.x < thatMax.x && thisMax.x > thatMin.x)) ||
-        (hackUtil.floatEquals(thisMin.x, thatMax.x) && (thisMin.z < thatMax.z && thisMax.z > thatMin.z)) ||
-        (hackUtil.floatEquals(thisMax.x, thatMin.x) && (thisMin.z < thatMax.z && thisMax.z > thatMin.z))
+      //return (
+      var truthy = (
+        (hackUtil.almostEquals(thisMin.z, thatMax.z) && (thisMin.x < thatMax.x && thisMax.x > thatMin.x)) ||
+        (hackUtil.almostEquals(thisMax.z, thatMin.z) && (thisMin.x < thatMax.x && thisMax.x > thatMin.x)) ||
+        (hackUtil.almostEquals(thisMin.x, thatMax.x) && (thisMin.z < thatMax.z && thisMax.z > thatMin.z)) ||
+        (hackUtil.almostEquals(thisMax.x, thatMin.x) && (thisMin.z < thatMax.z && thisMax.z > thatMin.z))
       );
+
+      return truthy;
     }
   };
 });
