@@ -40,7 +40,7 @@ define([
           var thatBbox = thatMesh.nextSimulationBbox(delta);
 
           if(thisBbox.isIntersectionBox(thatBbox) || hackGeometry.boxesTouch(thisBbox, thatBbox)){
-            var collisionFaces = { thatMesh: 'zmin', thisMesh: 'zmax' };  // TODO, make func for this
+            var collisionFaces = hackGeometry.collisionFaces(thisMesh, thatMesh);
 
             thisMesh.collideWith(thatMesh, collisionFaces.thisMesh, collisionFaces.thatMesh);
             thatMesh.collideWith(thisMesh, collisionFaces.thatMesh, collisionFaces.thisMesh);
@@ -78,7 +78,6 @@ define([
   // @param thatMeshCollisionFace {String}
   // TODO pass Box3 to this for better geometry?
   hackPhysics.Mesh.prototype.collideWith = function(thatMesh, thisMeshCollisionFace, thatMeshCollisionFace) {
-    // TODO before doing the above, give meshes isSolid prop?
     if(this.canMove) {
       if(thisMeshCollisionFace == 'zmin' || thisMeshCollisionFace == 'zmax') {
         this.velocity.z = 0;
