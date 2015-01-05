@@ -4,8 +4,9 @@ require([
   'jquery',
   'hack/physics',
   './assets/preloader',
-  './assets/levels/levels'
-], function($, hackPhysics, preloader, levels) {
+  './assets/levels/levels',
+  './hack/meshTypes/meshTypes'
+], function($, hackPhysics, preloader, levels, meshTypes) {
 
   $(document).ready(function() { 
 
@@ -98,7 +99,7 @@ require([
 
       $.each(meshes, function(meshKey, v) {
         levels[currentLevel].meshInstances[meshKey].forEach(function(meshInstance) {
-          var mesh = addMeshToScene(scene, v.geometry, v.materials, meshInstance.position);
+          var mesh = addMeshToScene(scene, v.geometry, v.materials, meshKey, meshInstance.position);
 
           // Keep the ref to mario mesh to use elsewhere
           if(meshKey == 'mario') Hack.mario = mesh;
@@ -134,10 +135,10 @@ require([
       return lights;
     }
 
-    function addMeshToScene(scene, geometry, materials, meshPosition) {
+    function addMeshToScene(scene, geometry, materials, meshKey, meshPosition) {
       var material = new THREE.MeshFaceMaterial(materials);
 
-      var mesh = new hackPhysics.Mesh(geometry, material, true);
+      var mesh = meshTypes.createFromName(meshKey, geometry, material);
       mesh.scale.set(5, 5, 5);
       mesh.castShadow = true;
       mesh.position.set(meshPosition.x, meshPosition.y, meshPosition.z);

@@ -11,6 +11,12 @@ define([
 
       this.canMove = canMove;
 
+      // Face that this object can hit or be hit by
+      // This is used for enemies and player objects.
+      // Valid list items: zmin, zmax, xmin, xmax, ymin, ymax
+      this.hitsWithFaces = {};
+      this.hitByFaces = {};
+
       this.velocity = new THREE.Vector3(0, 0, 0);
       this.acceleration = new THREE.Vector3(0, 0, 0);
     },
@@ -36,8 +42,8 @@ define([
           if(thisBbox.isIntersectionBox(thatBbox) || hackGeometry.boxesTouch(thisBbox, thatBbox)){
             var collisionFaces = { thatMesh: 'zmin', thisMesh: 'zmax' };  // TODO, make func for this
 
-            thisMesh.collideWith(thatMesh, collisionFaces.thisMesh);
-            thatMesh.collideWith(thisMesh, collisionFaces.thatMesh);
+            thisMesh.collideWith(thatMesh, collisionFaces.thisMesh, collisionFaces.thatMesh);
+            thatMesh.collideWith(thisMesh, collisionFaces.thatMesh, collisionFaces.thisMesh);
           }
         }
 
@@ -66,12 +72,12 @@ define([
     );
   }
 
-  // @param otherMesh {hackPhysics.Mesh}
-  // @param otherMeshCollisionFace {String} The face of the other mesh we collided with.
+  // @param thatMesh {hackPhysics.Mesh}
+  // @param thisMeshCollisionFace {String} The face of this mesh that was collided with.
   //          one of: xmin, xmax, zmin, zmax
+  // @param thatMeshCollisionFace {String}
   // TODO pass Box3 to this for better geometry?
-  hackPhysics.Mesh.prototype.collideWith = function(otherMesh, thisMeshCollisionFace) {
-    // TODO use more inheritance here, mesh should handle this based on its class
+  hackPhysics.Mesh.prototype.collideWith = function(thatMesh, thisMeshCollisionFace, thatMeshCollisionFace) {
     // TODO before doing the above, give meshes isSolid prop?
     if(this.canMove) {
       if(thisMeshCollisionFace == 'zmin' || thisMeshCollisionFace == 'zmax') {
@@ -80,7 +86,14 @@ define([
         this.position.setZ(thisMeshCollisionFace == 'zmin' ? 0 : -100); // TODO, temp logic
       }
     }
+
+    if(this.hitByFaces[thisMeshCollisionFace] && thatMesh.hitsWithFaces[thatMeshCollisionFace]) {
+      this.onHit();
+    }
   }
+
+  // Overridden by enemy and player physics mesh types.
+  hackPhysics.Mesh.prototype.onHit = function() {}
 
   return hackPhysics;
 });
